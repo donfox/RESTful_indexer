@@ -8,7 +8,8 @@ them in a database. It performs the following functionalities:
     - Handles error cases and retry mechanisms during the process.
 
 Configuration:
-    - local_block_repository: Path to the local directory for storing blocks (if enabled).
+    - local_block_repository: Path to the local directory for storing blocks 
+        (if enabled).
     - latest_block_uri: URL for fetching the latest block.
 
 Developed by: Don Fox
@@ -16,42 +17,42 @@ Date: 07/02/2024
 ***********************************************************************
 """
 
-import block_utils
-import redis_utils
-import config
+from pycallgraph2 import PyCallGraph
+from pycallgraph2.output import GraphvizOutput
+
+import sys
+sys.stdout.reconfigure(line_buffering=True)
 import logging
 
-def detect_and_fetch_missing_blocks(redis_conn) -> None:
-    """
-    Detects and processes missing blockchain blocks.
+import block_utils
+import redis_utils 
+from redis_utils import get_redis_connection
+import config
 
-    This function detects missing blocks from the `processed_blocks` set in Redis
-    and fetches them using utility functions.
-    Args:
-        redis_conn (redis.Redis): Redis connection object to interact with the Redis database.
 
-    Returns:
-        None
-    """
+def detect_and_fetch_missing_blocks(redis_conn:redis_utils.redis.Redis) -> None:
+    """Fix gaps detected in collected blockchain blocks."""
     try:
         missing_blocks = block_utils.detect_missing_blocks(redis_conn)
-        if missing_blocks:
-            block_utils.request_missing_blocks(missing_blocks, redis_conn)
-            logging.info(f"MISSING BLOCKS: {missing_blocks}")
-        else:
+        if not missing_blocks:
             logging.info("No missing blocks detected.")
+            return
+        logging.info(f"Missing Blocks: {missing_blocks}")
+        block_utils.request_missing_blocks(missing_blocks, redis_conn)
+        logging.info(f"Fetched missing blocks: {missing_blocks}")
+
+    except redis_utils.redis.ConnectionError as conn_err:
+        logging.error(f"Redis connection error: {conn_err}")
+    except KeyError as key_err:
+        logging.error(f"Key error while processing missing blocks: {key_err}")
     except Exception as e:
-        logging.error(f"Error detecting or fetching missing blocks: {e}")
-        
+        logging.error(f"Unexpected error: {e}")
+
+
 def main():
     """
-    Iinitialize Redis connection and process blockchain blocks.
-
-    Establishes a connection to Redis, processes missing blocks, and extracts
+    Iinitialize Redis connection fixes gaps in collected blocks, then extracts 
     the latest blockchain blocks.
-
-    Returns:
-        None
     """
     try:
         redis_conn = redis_utils.get_redis_connection()
@@ -62,7 +63,11 @@ def main():
 
 
 if __name__ == '__main__':
-    main()
+    graphviz = GraphvizOutput()
+    graphviz.output_file = 'call_graph.png'
+
+    with PyCallGraph(output=graphviz):
+        main()
 
 
 

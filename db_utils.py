@@ -7,11 +7,9 @@
 # Developed by: Don Fox
 # Date: 07/02/2024
 #######################################################################################################################
-
 import psycopg2
 import logging
 from config import DB_CONFIG
-
 
 def connect_to_db():
     """

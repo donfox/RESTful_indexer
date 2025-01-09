@@ -19,6 +19,8 @@ import os
 import redis
 import logging
 
+BLOCK_FETCH_DELAY = 1  # Delay in seconds between block fetch attempts
+
 # Configure logging globally for the application
 logging.basicConfig(
     filename='../logs/block_requests.log', 
