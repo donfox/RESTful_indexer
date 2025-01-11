@@ -64,10 +64,10 @@ if __name__ == '__main__':
    
     main()
 
-
-     # graphviz = GraphvizOutput()
+    # Generates graph of applications function calls.
+    # graphviz = GraphvizOutput()
     # graphviz.output_file = 'call_graph.png'
-
+    #
     # with PyCallGraph(output=graphviz):
     #     main()
 
